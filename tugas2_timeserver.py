@@ -51,7 +51,7 @@ class Server(threading.Thread):
                 threading.Thread.__init__(self)
 
         def run(self):
-                self.my_socket.bind(('0.0.0.0',45005))
+                self.my_socket.bind(('0.0.0.0',45000))
                 self.my_socket.listen(1)
                 while True:
                         self.connection, self.client_address = self.my_socket.accept()
