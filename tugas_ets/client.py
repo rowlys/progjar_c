@@ -19,7 +19,7 @@ def send_command(command_str, server_address):
 
         data_received = ""
         while True:
-            data = sock.recv(5*1024*1024)
+            data = sock.recv(5 * 1024 * 1024)
             if data:
                 data_received += data.decode()
                 if "\r\n\r\n" in data_received:
@@ -66,47 +66,18 @@ def remote_upload(server_address, filename=""):
         print("File not found:", filename)
         return False
 
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect(server_address)
+    with open(filename, 'rb') as f:
+        content = f.read()
+        encoded = base64.b64encode(content).decode()
 
-    try:
-        filesize = os.path.getsize(filename)
-        command_str = f"UPLOAD {filename} "
-        sock.sendall(command_str.encode())
-
-        #logging.warning("Sending data...")
-
-        with open(filename, 'rb') as f:
-            while True:
-                chunk = f.read(1024 * 1024)
-                if not chunk:
-                    break
-                encoded = base64.b64encode(chunk).decode()
-                sock.sendall(encoded.encode())
-
-        sock.sendall(b"\r\n\r\n")
-
-        #logging.warning("Waiting for response...")
-        response = ""
-        while True:
-            data = sock.recv(4096)
-            if data:
-                response += data.decode()
-                if "\r\n\r\n" in response:
-                    break
-            else:
-                break
-        
-        #logging.warning("Response recorded.")
-        hasil = json.loads(response.split("\r\n\r\n")[0])
-        return hasil.get("status") == "OK"
-
-    except Exception as e:
-        print(f"Upload failed: {e}")
+    command_str = f"UPLOAD {filename} {encoded}\r\n\r\n"
+    hasil = send_command(command_str, server_address)
+    if hasil and hasil['status'] == 'OK':
+        #print("Upload sukses")
+        return True
+    else:
+        #print("Gagal mengunggah file")
         return False
-    finally:
-        sock.close()
-
 
 def remote_delete(server_address, filename=""):
     command_str = f"DELETE {filename}\r\n\r\n"
