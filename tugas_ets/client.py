@@ -113,7 +113,8 @@ def run_concurrent(op, file, filesize, server_address, mode="thread", workers=1)
         results = [f.result() for f in as_completed(futures)]
 
         for r in results:
-            success += 1
+            if r:
+                success += 1
         
     return success
 
